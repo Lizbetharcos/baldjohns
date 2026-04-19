@@ -1,19 +1,22 @@
-export async function POST(req: Request) {
-  const { image, trashId } = await req.json();
+import { NextResponse } from 'next/server';
+import { neon } from '@neondatabase/serverless';
 
-  // Direct API call without the SDK
-  const response = await fetch('https://api.humandelta.com/v1/verify', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.HUMAN_DELTA_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      image_url: image, 
-      task: `Verify if this is a real photo of ${trashId}`
-    })
-  });
+export async function GET() {
+  try {
+    // 1. Initialize the connection using your Environment Variable
+    const sql = neon(process.env.DATABASE_URL!);
 
-  const data = await response.json();
-  return Response.json(data);
+    // 2. Fetch the trash items from your Neon table
+    // Replace 'trash_catalog' with your actual table name from schema.sql
+    const data = await sql`SELECT * FROM trash_catalog ORDER BY id ASC`;
+
+    // 3. Return the data to your teammates
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Database Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch trench data', details: error.message },
+      { status: 500 }
+    );
+  }
 }
