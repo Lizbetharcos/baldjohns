@@ -57,7 +57,6 @@ export default function DivePage() {
   const lockedIndex = trashItems.findIndex(item => !verifiedIds.includes(item.id));
   
   // The height is limited to exactly where the current target card sits.
-  // This physically stops the scrollbar from going deeper.
   const dynamicHeight = nextLockedItem 
     ? (lockedIndex + 1) * 1200 + 800 
     : 15000; 
@@ -108,7 +107,7 @@ export default function DivePage() {
       
       {/* --- SURFACE HEADER --- */}
       <motion.div style={{ position: 'absolute', top: '300px', width: '100%', textAlign: 'center', opacity: introOpacity }}>
-        <h1 style={{ fontSize: '3rem', color: '#fff', textShadow: '0 0 15px #00d4ff' }}>BEGIN DESCENT</h1>
+        <h1 style={{ fontSize: '3.5rem', textShadow: '0 0 15px #00d4ff', color: '#fff' }}>BEGIN DESCENT</h1>
         <p style={{ color: '#bde0fe' }}>Locate and verify pollutants to dive deeper.</p>
       </motion.div>
         
@@ -123,26 +122,23 @@ export default function DivePage() {
         return (
           <motion.div 
             key={item.id}
-            initial="initial"
-            whileHover="hover"
             style={{ 
               position: 'absolute',
               top: `${(index + 1) * 1200}px`,
               left: '50%',
               transform: 'translateX(-50%)',
               border: `1px solid ${isVerified ? '#00ffaa' : '#00d4ff'}`, 
-              padding: '30px', 
+              padding: '35px', 
               width: '90%', 
-              maxWidth: '500px', 
+              maxWidth: '550px', 
               backgroundColor: 'rgba(0, 10, 20, 0.98)',
               zIndex: 20,
               boxShadow: `0 0 30px ${isVerified ? 'rgba(0, 255, 170, 0.2)' : 'rgba(0, 212, 255, 0.1)'}`,
               opacity: currentDepth > (index * 1200) - 400 ? 1 : 0,
-              transition: 'opacity 0.5s ease',
-              cursor: 'help'
+              transition: 'opacity 0.5s ease'
             }}
           >
-            <h3 style={{ color: isVerified ? '#00ffaa' : '#fff', textAlign: 'center', fontSize: '1.5rem' }}>
+            <h3 style={{ color: isVerified ? '#00ffaa' : '#fff', textAlign: 'center', fontSize: '1.6rem', marginBottom: '15px' }}>
                {isVerified ? `[CLEARED] ${item.item_name}` : item.item_name}
             </h3>
             
@@ -155,36 +151,35 @@ export default function DivePage() {
                   height: '250px', 
                   objectFit: 'contain', 
                   mixBlendMode: 'screen', 
-                  margin: '20px 0',
+                  marginBottom: '20px',
                   filter: 'brightness(1.1)'
                 }} 
               />
             )}
 
-            <motion.div
-              variants={{ initial: { height: 0, opacity: 0 }, hover: { height: 'auto', opacity: 1 } }}
-              initial="initial"
-              transition={{ duration: 0.3 }}
-              style={{ overflow: 'hidden', borderTop: '1px solid rgba(0,212,255,0.1)', paddingTop: '15px' }}
-            >
-              <p style={{ color: '#bde0fe', fontSize: '0.95rem', lineHeight: '1.6' }}>{item.impact_fact}</p>
-            </motion.div>
+            {/* DESCRIPTION SECTION (Always Visible) */}
+            <div style={{ borderTop: '1px solid rgba(0,212,255,0.1)', paddingTop: '20px', marginBottom: '20px' }}>
+              <p style={{ color: '#bde0fe', fontSize: '1.05rem', lineHeight: '1.6', textAlign: 'center' }}>
+                {item.impact_fact}
+              </p>
+            </div>
             
-            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: isVerified ? '#00ffaa' : '#00d4ff' }}>
-                SONAR: {item.required_unlock_depth}m
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', color: isVerified ? '#00ffaa' : '#00d4ff' }}>
+                SONAR DEPTH: {item.required_unlock_depth}m
               </span>
 
               {isCurrentTarget && (
                 <button 
                   onClick={() => handleVerify(item.id)}
                   style={{ 
-                    padding: '10px 25px', 
+                    padding: '12px 28px', 
                     backgroundColor: '#00d4ff', 
                     color: '#000', 
                     fontWeight: 'bold', 
                     border: 'none',
-                    cursor: 'pointer' 
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
                   }}
                 >
                   SCAN & VERIFY
