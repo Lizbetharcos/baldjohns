@@ -15,6 +15,7 @@ export default function DivePage() {
   const [currentDepth, setCurrentDepth] = useState(0);
 
   // Dynamic Background: Maps depth to ocean zone colors
+  // Ends at solid black (#000000) for the Hadal zone
   const bgColor = useTransform(
     scrollY,
     [0, 500, 2000, 6000, 11000], 
@@ -34,6 +35,7 @@ export default function DivePage() {
       try {
         const res = await fetch('/api/trash');
         const data = await res.json();
+        // Sort items by depth to ensure progression is linear
         const sortedData = data.sort((a, b) => a.required_unlock_depth - b.required_unlock_depth);
         setTrashItems(sortedData);
         setLoading(false);
@@ -48,9 +50,10 @@ export default function DivePage() {
   // --- 4. THE PROGRESSION LOCK ---
   const nextLockedItem = trashItems.find(item => !verifiedIds.includes(item.id));
   
+  // Dynamic page height: grows as you unlock more items
   const maxPageHeight = nextLockedItem 
-    ? nextLockedItem.required_unlock_depth + 1200 // Buffer for scroll room
-    : 11000; 
+    ? (trashItems.indexOf(nextLockedItem) + 1) * 1200 + 800
+    : 15000; 
 
   // --- 5. GAME LOGIC ---
   const handleVerify = (id) => {
@@ -72,7 +75,8 @@ export default function DivePage() {
       color: '#00d4ff', 
       minHeight: `${maxPageHeight}px`, 
       fontFamily: 'monospace', 
-      position: 'relative'
+      position: 'relative',
+      transition: 'background-color 0.5s ease'
     }}>
       
       {/* --- FIXED HUD --- */}
@@ -80,7 +84,7 @@ export default function DivePage() {
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
         padding: '20px', borderBottom: '1px solid rgba(0, 212, 255, 0.3)', 
-        backgroundColor: 'rgba(0, 8, 20, 0.9)', backdropFilter: 'blur(10px)'
+        backgroundColor: 'rgba(0, 8, 20, 0.95)', backdropFilter: 'blur(10px)'
       }}>
         <Link href="/" style={{ color: '#00d4ff', textDecoration: 'none', border: '1px solid #00d4ff', padding: '8px 20px' }}>
           ← ABORT DIVE
@@ -100,67 +104,94 @@ export default function DivePage() {
       
       {/* --- SURFACE HEADER --- */}
       <motion.div style={{ 
-        position: 'absolute', top: '250px', width: '100%', textAlign: 'center',
+        position: 'absolute', top: '300px', width: '100%', textAlign: 'center',
         opacity: introOpacity, zIndex: 10
       }}>
         <h1 style={{ fontSize: '3.5rem', textShadow: '0 0 20px #00d4ff', color: '#fff' }}>BEGIN DESCENT</h1>
         <p style={{ color: '#bde0fe', fontSize: '1.2rem' }}>Scroll down to locate marine pollutants.</p>
-        {loading && <p>SCANNING SEABED...</p>}
+        {loading && <p style={{marginTop: '20px'}}>INITIALIZING SONAR...</p>}
       </motion.div>
         
-      {/* --- ABSOLUTE POSITIONED TRASH CARDS --- */}
-      {trashItems.map((item) => {
+      {/* --- INTERACTIVE TRASH CARDS --- */}
+      {trashItems.map((item, index) => {
         const isVerified = verifiedIds.includes(item.id);
         const isLocked = nextLockedItem && nextLockedItem.id === item.id;
 
         return (
-          <div key={item.id} style={{ 
-            position: 'absolute',
-            top: `${item.required_unlock_depth + 600}px`, // Pushed down to avoid overlap with title
-            left: '50%',
-            transform: 'translateX(-50%)',
-            border: `1px solid ${isVerified ? '#00ffaa' : '#00d4ff'}`, 
-            padding: '25px', 
-            width: '90%', 
-            maxWidth: '600px', 
-            backgroundColor: 'rgba(0, 12, 24, 0.9)', 
-            boxShadow: `0 0 20px ${isVerified ? 'rgba(0, 255, 170, 0.2)' : 'rgba(0, 212, 255, 0.1)'}`,
-            opacity: currentDepth > item.required_unlock_depth - 400 ? 1 : 0, 
-            transition: 'opacity 0.5s ease',
-            zIndex: 20
-          }}>
-            <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: isVerified ? '#00ffaa' : '#fff' }}>
+          <motion.div 
+            key={item.id}
+            initial="initial"
+            whileHover="hover"
+            style={{ 
+              position: 'absolute',
+              top: `${(index + 1) * 1200}px`, // Spaced out significantly
+              left: '50%',
+              transform: 'translateX(-50%)',
+              border: `1px solid ${isVerified ? '#00ffaa' : '#00d4ff'}`, 
+              padding: '30px', 
+              width: '90%', 
+              maxWidth: '550px', 
+              backgroundColor: 'rgba(0, 12, 24, 0.95)', 
+              boxShadow: `0 0 30px ${isVerified ? 'rgba(0, 255, 170, 0.2)' : 'rgba(0, 212, 255, 0.1)'}`,
+              opacity: currentDepth > (index * 1200) ? 1 : 0, 
+              transition: 'opacity 0.8s ease',
+              zIndex: 20,
+              cursor: 'help'
+            }}
+          >
+            <h3 style={{ fontSize: '1.6rem', marginBottom: '15px', color: isVerified ? '#00ffaa' : '#fff', textAlign: 'center' }}>
               {isVerified ? `[CLEARED] ${item.item_name}` : item.item_name}
             </h3>
             
             {item.image_url && (
-              <img 
-                src={item.image_url} 
-                alt={item.item_name} 
-                style={{ width: '100%', height: '200px', objectFit: 'contain', marginBottom: '15px' }} 
-              />
+              <div style={{ backgroundColor: '#000', borderRadius: '8px', padding: '10px', marginBottom: '15px' }}>
+                <img 
+                  src={item.image_url} 
+                  alt={item.item_name} 
+                  style={{ 
+                    width: '100%', 
+                    height: '250px', 
+                    objectFit: 'contain',
+                    mixBlendMode: 'screen' // Fakes transparency for white backgrounds
+                  }} 
+                />
+              </div>
             )}
 
-            <p style={{ color: '#bde0fe', marginBottom: '20px', lineHeight: '1.5' }}>{item.impact_fact}</p>
+            {/* HOVER REVEAL SECTION */}
+            <motion.div
+              variants={{
+                initial: { height: 0, opacity: 0 },
+                hover: { height: 'auto', opacity: 1 }
+              }}
+              transition={{ duration: 0.4 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <p style={{ color: '#bde0fe', marginBottom: '20px', lineHeight: '1.6', fontSize: '1.05rem' }}>
+                {item.impact_fact}
+              </p>
+              <p style={{ fontSize: '0.8rem', color: '#00d4ff', marginBottom: '10px' }}>
+                DETECTED AT: {item.required_unlock_depth} METERS
+              </p>
+            </motion.div>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem', color: isVerified ? '#00ffaa' : '#00d4ff' }}>
-                FOUND AT: {item.required_unlock_depth}m
-              </span>
-              
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
               {!isVerified && isLocked && (
                 <button 
                   onClick={() => handleVerify(item.id)}
                   style={{ 
-                    padding: '10px 20px', backgroundColor: '#00d4ff', color: '#000814', 
-                    border: 'none', fontWeight: 'bold', cursor: 'pointer'
+                    width: '100%', padding: '15px', backgroundColor: '#00d4ff', color: '#000814', 
+                    border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem'
                   }}
                 >
-                  SCAN & VERIFY
+                  SCAN & VERIFY ASSET
                 </button>
               )}
+              {!isVerified && !isLocked && !verifiedIds.includes(item.id) && (
+                <span style={{ color: '#555' }}>[SONAR LOCK ACTIVE]</span>
+              )}
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </motion.main>
