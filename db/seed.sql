@@ -16,7 +16,7 @@ INSERT INTO trash_catalog (id, zone_name, item_name, impact_fact, required_unloc
 (9,  'Twilight', 'Plastic Shipping Strap',             'Rigid polypropylene strapping bands are nearly invisible to marine life and cause severe laceration injuries.',                                                950,  'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/shipping-strap.png'),
 
 -- Midnight Zone (1,000–4,000m)
-(10, 'Midnight', 'Sunken Cargo Container',             'A single lost shipping container can smother several square metres of deep-sea chemosynthetic habitat for centuries.',                                         2200, 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/shipping-container.png'),
+(10, 'Midnight', 'Sunken Cargo Container',             'A single lost shipping container can smother several square metres of deep-sea chemosynthetic habitat for centuries.',                                         2200, 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/metal-container.png'),
 (11, 'Midnight', 'Discarded Medical Waste Barrel',     'Pre-1980s ocean-dumped medical waste barrels still leach pathogens and pharmaceutical compounds into abyssal sediment.',                                       3100, 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/medical-waste.png'),
 (12, 'Midnight', 'Deep-Sea Trawl Net Fragment',        'Lost trawl net mesh continues trapping deep-water species like grenadier fish and crustaceans with no mechanism for release.',                                3800, 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/trawl-net.png'),
 
@@ -38,31 +38,33 @@ INSERT INTO marine_life (trash_id, common_name, scientific_name, zone_name, how_
 (3,  'Bottlenose Dolphin',         'Tursiops truncatus',           'Sunlight', 'Heavy metals released from degrading lighters bioaccumulate up the food chain, impairing dolphin immune and reproductive systems.',                      'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/dolphin_bottlenose.png'),
 -- (4) Polystyrene Foam Cup → Yellowfin Tuna (juvenile)
 (4,  'Yellowfin Tuna',             'Thunnus albacares',            'Sunlight', 'Juvenile tuna ingest polystyrene microbeads alongside zooplankton, causing gut blockages and transferring toxic styrene compounds into tissue.',          'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/yellowfin-tuna.png'),
+-- (4) Tangled Fishing Line → California Sea Lion
+(5, 'California Sea Lion',         'Zalophus californianus',       'Sunlight', 'Discarded monofilament fishing line wraps around necks and flippers as sea lions swim and play near the surface, causing deep lacerations and strangulation as the animal grows.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/sea-lion.png');
 
 -- Twilight Zone
 -- (6) Lost Crab Pot → Dungeness Crab
-(5,  'Dungeness Crab',             'Metacarcinus magister',        'Twilight', 'Enters ghost traps attracted by bait scent or trapped prey and cannot escape, leading to starvation and death that baits further crabs.',               'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/crab.png'),
+(6,  'Dungeness Crab',             'Metacarcinus magister',        'Twilight', 'Enters ghost traps attracted by bait scent or trapped prey and cannot escape, leading to starvation and death that baits further crabs.',               'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/crab2.png'),
 -- (7) Rubber Car Tyre Fragment → Coho Salmon
-(6,  'Coho Salmon',                'Oncorhynchus kisutch',         'Twilight', '6PPD-quinone leached from tyre rubber causes acute mortality in coho salmon at concentrations as low as 0.8 micrograms per litre.',                      'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/coho-salmon.png'),
+(7,  'Coho Salmon',                'Oncorhynchus kisutch',         'Twilight', '6PPD-quinone leached from tyre rubber causes acute mortality in coho salmon at concentrations as low as 0.8 micrograms per litre.',                      'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/coho-salmon.png'),
 -- (8) Discarded Scuba Tank → Lanternfish
-(7,  'Lanternfish',                'Myctophum punctatum',          'Twilight', 'Corroding tanks alter dissolved oxygen and iron levels along vertical migration routes, disrupting the diel migration patterns lanternfish depend on.',   'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/lanternfish.png'),
+(8,  'Lanternfish',                'Myctophum punctatum',          'Twilight', 'Corroding tanks alter dissolved oxygen and iron levels along vertical migration routes, disrupting the diel migration patterns lanternfish depend on.',   'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/lanternfish2.png'),
 -- (9) Plastic Shipping Strap → Sperm Whale
-(8,  'Sperm Whale',                'Physeter macrocephalus',       'Twilight', 'Rigid strapping bands encountered during deep dives cause severe mouth and flipper lacerations, and accumulate in stomachs alongside other ingested debris.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/sperm-whale.png'),
+(9,  'Sperm Whale',                'Physeter macrocephalus',       'Twilight', 'Rigid strapping bands encountered during deep dives cause severe mouth and flipper lacerations, and accumulate in stomachs alongside other ingested debris.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/sperm-whale.png'),
  
 -- Midnight Zone
 -- (10) Sunken Cargo Container → Dumbo Octopus
-(9, 'Dumbo Octopus',              'Grimpoteuthis boylei',         'Midnight', 'Containers smother soft sediment hunting grounds and chemosynthetic vent communities that dumbo octopuses rely on for shelter and prey.',                'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/dumbo_octopus.png'),
+(10, 'Dumbo Octopus',              'Grimpoteuthis boylei',         'Midnight', 'Containers smother soft sediment hunting grounds and chemosynthetic vent communities that dumbo octopuses rely on for shelter and prey.',                'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/dumbo_octopus.png'),
 -- (11) Discarded Medical Waste Barrel → Sea Cucumber
-(10, 'Sea Cucumber',               'Scotoplanes globosa',          'Midnight', 'Feeds directly on abyssal sediment and accumulates pharmaceutical compounds and pathogens leached from degrading medical waste barrels.',                'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/sea-cucumber.png'),
+(11, 'Sea Cucumber',               'Scotoplanes globosa',          'Midnight', 'Feeds directly on abyssal sediment and accumulates pharmaceutical compounds and pathogens leached from degrading medical waste barrels.',                'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/sea-cucumber.png'),
 -- (12) Deep-Sea Trawl Net Fragment → Roundnose Grenadier
-(11, 'Roundnose Grenadier',        'Coryphaenoides rupestris',     'Midnight', 'Slow-moving deep-water fish become entangled in lost trawl mesh with no means of escape, contributing to population declines already stressed by overfishing.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/grenadier.png'),
+(12, 'Roundnose Grenadier',        'Coryphaenoides rupestris',     'Midnight', 'Slow-moving deep-water fish become entangled in lost trawl mesh with no means of escape, contributing to population declines already stressed by overfishing.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/grenadier.png'),
  
 -- Abyssal Zone
 -- (13) Plastic Detergent Bottle → Abyssal Sea Cucumber (Holothurian)
-(12, 'Abyssal Holothurian',        'Benthodytes sanguinolenta',    'Abyssal',  'Surfactants from detergent residue disrupt the lipid membranes of the bacteria these deposit feeders consume, removing a critical food source.',          'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/abyssal.png'),
+(13, 'Abyssal Holothurian',        'Benthodytes sanguinolenta',    'Abyssal',  'Surfactants from detergent residue disrupt the lipid membranes of the bacteria these deposit feeders consume, removing a critical food source.',          'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/abyssal.png'),
 -- (14) Corroded Lead Fishing Weight → Polychaete Worm
-(13, 'Polychaete Worm',            'Glycera dibranchiata',         'Abyssal',  'Deposit-feeding worms ingest lead-contaminated sediment directly, accumulating neurotoxic lead compounds that impair reproduction and larval survival.',  'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/polychaete.png'),
+(14, 'Polychaete Worm',            'Glycera dibranchiata',         'Abyssal',  'Deposit-feeding worms ingest lead-contaminated sediment directly, accumulating neurotoxic lead compounds that impair reproduction and larval survival.',  'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/polychaete.png'),
  
 -- Hadal Zone
 -- (15) Polyethylene Microplastic Pellet → Amphipod
-(14, 'Hadal Amphipod',             'Hirondellea gigas',            'Hadal',    'Scavenging amphipods at depths exceeding 10,000m have been found with microplastic fragments in their digestive tracts, confirming the deepest known plastic contamination on Earth.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/hadal-amphipod.png');
+(15, 'Hadal Amphipod',             'Hirondellea gigas',            'Hadal',    'Scavenging amphipods at depths exceeding 10,000m have been found with microplastic fragments in their digestive tracts, confirming the deepest known plastic contamination on Earth.', 'https://xragmlmrgzsgbq5z.public.blob.vercel-storage.com/hadal-amphipod.png');
