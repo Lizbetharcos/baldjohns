@@ -10,15 +10,22 @@ export default function DivePage() {
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // --- 2. THE SCROLL ENGINE ---
+  // --- 2. GLOBAL STYLING ---
+  // Forces the browser body to stay dark to prevent white gaps
+  useEffect(() => {
+    document.body.style.backgroundColor = '#000814';
+    document.body.style.margin = '0';
+    return () => { document.body.style.backgroundColor = ''; };
+  }, []);
+
+  // --- 3. THE SCROLL ENGINE ---
   const { scrollY } = useScroll();
   const [currentDepth, setCurrentDepth] = useState(0);
 
-  // --- 3. DYNAMIC GRADIENT ---
-  // This maps the actual scroll position to the background color for a constant gradient effect
+  // Gradient transition throughout the whole descent
   const bgColor = useTransform(
     scrollY,
-    [0, 1000, 4000, 8000, 12000], 
+    [0, 1500, 4000, 8000, 12000], 
     ['#0077b6', '#023e8a', '#03045e', '#000814', '#000000']
   );
 
@@ -45,22 +52,20 @@ export default function DivePage() {
     fetchData();
   }, []);
 
-  // --- 5. THE SCROLL LOCK (CRITICAL) ---
+  // --- 5. THE STRICT SCROLL LOCK ---
   const nextLockedItem = trashItems.find(item => !verifiedIds.includes(item.id));
   const lockedIndex = trashItems.findIndex(item => !verifiedIds.includes(item.id));
   
-  // If we find a locked item, we limit the height to exactly that item's depth + 1000px
-  // This prevents the user from scrolling further down until 'handleVerify' is called.
+  // The height is limited to exactly where the current target card sits.
+  // This physically stops the scrollbar from going deeper.
   const dynamicHeight = nextLockedItem 
-    ? (lockedIndex + 1) * 1200 + 400 
+    ? (lockedIndex + 1) * 1200 + 800 
     : 15000; 
 
   // --- 6. GAME LOGIC ---
   const handleVerify = (id) => {
     setVerifiedIds(prev => [...prev, id]); 
     setScore(prev => prev + 100);
-    // When this state updates, the component re-renders, dynamicHeight increases, 
-    // and the user can suddenly scroll further.
   };
 
   const getZoneName = (depth) => {
@@ -75,32 +80,36 @@ export default function DivePage() {
     <motion.main style={{ 
       backgroundColor: bgColor, 
       color: '#00d4ff', 
-      height: `${dynamicHeight}px`, // This creates the physical "Wall"
+      height: `${dynamicHeight}px`, 
+      minHeight: '100vh',
       fontFamily: 'monospace', 
       position: 'relative',
-      transition: 'height 0.8s ease-out' // Smoothly "opens" the trench when verified
+      overflowX: 'hidden',
+      transition: 'height 1s cubic-bezier(0.4, 0, 0.2, 1)' 
     }}>
       
       {/* --- FIXED HUD --- */}
       <div style={{ 
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', justifyContent: 'space-between', padding: '20px',
-        backgroundColor: 'rgba(0, 8, 20, 0.9)', backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(0, 8, 20, 0.95)', backdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(0, 212, 255, 0.2)'
       }}>
         <Link href="/" style={{ color: '#00d4ff', textDecoration: 'none', border: '1px solid #00d4ff', padding: '8px 20px' }}>
           ← ABORT DIVE
         </Link>
         <div style={{ textAlign: 'right' }}>
-          <h2 style={{ margin: 0 }}>{currentDepth}m</h2>
-          <p style={{ margin: 0, color: '#ff0055', fontSize: '0.8rem' }}>{getZoneName(currentDepth)} | SCORE: {score}</p>
+          <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{currentDepth}m</h2>
+          <p style={{ margin: 0, color: '#ff0055', fontSize: '0.8rem' }}>
+            {getZoneName(currentDepth)} | SCORE: {score}
+          </p>
         </div>
       </div>
       
       {/* --- SURFACE HEADER --- */}
       <motion.div style={{ position: 'absolute', top: '300px', width: '100%', textAlign: 'center', opacity: introOpacity }}>
-        <h1 style={{ fontSize: '3rem', color: '#fff' }}>BEGIN DESCENT</h1>
-        <p>Locate and verify pollutants to dive deeper.</p>
+        <h1 style={{ fontSize: '3rem', color: '#fff', textShadow: '0 0 15px #00d4ff' }}>BEGIN DESCENT</h1>
+        <p style={{ color: '#bde0fe' }}>Locate and verify pollutants to dive deeper.</p>
       </motion.div>
         
       {/* --- TRASH CARDS --- */}
@@ -108,10 +117,14 @@ export default function DivePage() {
         const isVerified = verifiedIds.includes(item.id);
         const isCurrentTarget = nextLockedItem && nextLockedItem.id === item.id;
 
+        // PHYSICAL LOCK: Don't render cards that are beyond our current progress
+        if (!isVerified && !isCurrentTarget && index > lockedIndex) return null;
+
         return (
           <motion.div 
             key={item.id}
-            whileHover={isCurrentTarget || isVerified ? "hover" : ""}
+            initial="initial"
+            whileHover="hover"
             style={{ 
               position: 'absolute',
               top: `${(index + 1) * 1200}px`,
@@ -121,39 +134,63 @@ export default function DivePage() {
               padding: '30px', 
               width: '90%', 
               maxWidth: '500px', 
-              backgroundColor: 'rgba(0, 10, 20, 0.95)',
+              backgroundColor: 'rgba(0, 10, 20, 0.98)',
               zIndex: 20,
-              opacity: currentDepth > (index * 1200) - 600 ? 1 : 0.1, // Fade in
-              filter: isVerified || isCurrentTarget ? 'none' : 'grayscale(1) blur(2px)'
+              boxShadow: `0 0 30px ${isVerified ? 'rgba(0, 255, 170, 0.2)' : 'rgba(0, 212, 255, 0.1)'}`,
+              opacity: currentDepth > (index * 1200) - 400 ? 1 : 0,
+              transition: 'opacity 0.5s ease',
+              cursor: 'help'
             }}
           >
-            <h3 style={{ color: isVerified ? '#00ffaa' : '#fff', textAlign: 'center' }}>
+            <h3 style={{ color: isVerified ? '#00ffaa' : '#fff', textAlign: 'center', fontSize: '1.5rem' }}>
                {isVerified ? `[CLEARED] ${item.item_name}` : item.item_name}
             </h3>
             
             {item.image_url && (
               <img 
                 src={item.image_url} 
-                style={{ width: '100%', height: '200px', objectFit: 'contain', mixBlendMode: 'screen', margin: '20px 0' }} 
+                alt={item.item_name}
+                style={{ 
+                  width: '100%', 
+                  height: '250px', 
+                  objectFit: 'contain', 
+                  mixBlendMode: 'screen', 
+                  margin: '20px 0',
+                  filter: 'brightness(1.1)'
+                }} 
               />
             )}
 
             <motion.div
               variants={{ initial: { height: 0, opacity: 0 }, hover: { height: 'auto', opacity: 1 } }}
               initial="initial"
-              style={{ overflow: 'hidden' }}
+              transition={{ duration: 0.3 }}
+              style={{ overflow: 'hidden', borderTop: '1px solid rgba(0,212,255,0.1)', paddingTop: '15px' }}
             >
-              <p style={{ color: '#bde0fe', fontSize: '0.9rem' }}>{item.impact_fact}</p>
+              <p style={{ color: '#bde0fe', fontSize: '0.95rem', lineHeight: '1.6' }}>{item.impact_fact}</p>
             </motion.div>
             
-            {isCurrentTarget && (
-              <button 
-                onClick={() => handleVerify(item.id)}
-                style={{ width: '100%', padding: '15px', marginTop: '10px', backgroundColor: '#00d4ff', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                SCAN & VERIFY
-              </button>
-            )}
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', color: isVerified ? '#00ffaa' : '#00d4ff' }}>
+                SONAR: {item.required_unlock_depth}m
+              </span>
+
+              {isCurrentTarget && (
+                <button 
+                  onClick={() => handleVerify(item.id)}
+                  style={{ 
+                    padding: '10px 25px', 
+                    backgroundColor: '#00d4ff', 
+                    color: '#000', 
+                    fontWeight: 'bold', 
+                    border: 'none',
+                    cursor: 'pointer' 
+                  }}
+                >
+                  SCAN & VERIFY
+                </button>
+              )}
+            </div>
           </motion.div>
         );
       })}
