@@ -6,22 +6,23 @@ import Link from 'next/link';
 export default function DivePage() {
   // --- 1. GAME STATE ---
   const [trashItems, setTrashItems] = useState([]);
-  const [verifiedIds, setVerifiedIds] = useState([]); // Tracks which items are cleared
+  const [verifiedIds, setVerifiedIds] = useState([]); 
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // --- 2. THE SCROLL ENGINE ---
   const { scrollY } = useScroll();
-  
-  // 1 pixel of scroll = 1 meter of depth
   const [currentDepth, setCurrentDepth] = useState(0);
 
-  // Dynamic Background: Maps exact depth to ocean zone colors
+  // Dynamic Background: Maps depth to ocean zone colors
   const bgColor = useTransform(
     scrollY,
     [0, 500, 2000, 6000, 11000], 
     ['#0077b6', '#023e8a', '#03045e', '#000814', '#000000']
   );
+
+  // Fades out the "Begin Descent" text as you scroll down
+  const introOpacity = useTransform(scrollY, [0, 400], [1, 0]);
 
   useEffect(() => {
     return scrollY.onChange((v) => setCurrentDepth(Math.round(v)));
@@ -33,7 +34,6 @@ export default function DivePage() {
       try {
         const res = await fetch('/api/trash');
         const data = await res.json();
-        // Sort items by depth so they appear in order
         const sortedData = data.sort((a, b) => a.required_unlock_depth - b.required_unlock_depth);
         setTrashItems(sortedData);
         setLoading(false);
@@ -46,23 +46,18 @@ export default function DivePage() {
   }, []);
 
   // --- 4. THE PROGRESSION LOCK ---
-  // Find the first item the user hasn't verified yet
   const nextLockedItem = trashItems.find(item => !verifiedIds.includes(item.id));
   
-  // Set the bottom of the page just below the locked item.
-  // If no locked items exist, open the trench all the way to 11,000m!
   const maxPageHeight = nextLockedItem 
-    ? nextLockedItem.required_unlock_depth + 600 // +600px gives them room to see the card
+    ? nextLockedItem.required_unlock_depth + 1200 // Buffer for scroll room
     : 11000; 
 
   // --- 5. GAME LOGIC ---
   const handleVerify = (id) => {
-    setVerifiedIds(prev => [...prev, id]); // Unlock the next zone
+    setVerifiedIds(prev => [...prev, id]); 
     setScore(prev => prev + 100);
-    alert(`Verification successful! The trench opens deeper...`);
   };
 
-  // Calculate current zone text based on depth
   const getZoneName = (depth) => {
     if (depth < 200) return "SUNLIGHT ZONE";
     if (depth < 1000) return "TWILIGHT ZONE";
@@ -75,10 +70,9 @@ export default function DivePage() {
     <motion.main style={{ 
       backgroundColor: bgColor, 
       color: '#00d4ff', 
-      height: `${maxPageHeight}px`, // THIS IS THE LOCK
+      minHeight: `${maxPageHeight}px`, 
       fontFamily: 'monospace', 
-      position: 'relative',
-      overflow: 'hidden' // Prevents horizontal scroll issues
+      position: 'relative'
     }}>
       
       {/* --- FIXED HUD --- */}
@@ -86,7 +80,7 @@ export default function DivePage() {
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
         padding: '20px', borderBottom: '1px solid rgba(0, 212, 255, 0.3)', 
-        backgroundColor: 'rgba(0, 8, 20, 0.8)', backdropFilter: 'blur(10px)'
+        backgroundColor: 'rgba(0, 8, 20, 0.9)', backdropFilter: 'blur(10px)'
       }}>
         <Link href="/" style={{ color: '#00d4ff', textDecoration: 'none', border: '1px solid #00d4ff', padding: '8px 20px' }}>
           ← ABORT DIVE
@@ -105,14 +99,16 @@ export default function DivePage() {
       </div>
       
       {/* --- SURFACE HEADER --- */}
-      <div style={{ position: 'absolute', top: '150px', width: '100%', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', textShadow: '0 0 10px #00d4ff', color: '#fff' }}>BEGIN DESCENT</h1>
-        <p style={{ color: '#bde0fe' }}>Scroll down to locate marine pollutants.</p>
+      <motion.div style={{ 
+        position: 'absolute', top: '250px', width: '100%', textAlign: 'center',
+        opacity: introOpacity, zIndex: 10
+      }}>
+        <h1 style={{ fontSize: '3.5rem', textShadow: '0 0 20px #00d4ff', color: '#fff' }}>BEGIN DESCENT</h1>
+        <p style={{ color: '#bde0fe', fontSize: '1.2rem' }}>Scroll down to locate marine pollutants.</p>
         {loading && <p>SCANNING SEABED...</p>}
-      </div>
+      </motion.div>
         
       {/* --- ABSOLUTE POSITIONED TRASH CARDS --- */}
-      {/* This places each card at its exact depth physically on the page */}
       {trashItems.map((item) => {
         const isVerified = verifiedIds.includes(item.id);
         const isLocked = nextLockedItem && nextLockedItem.id === item.id;
@@ -120,21 +116,31 @@ export default function DivePage() {
         return (
           <div key={item.id} style={{ 
             position: 'absolute',
-            top: `${item.required_unlock_depth}px`, // Placed exactly at its required depth
+            top: `${item.required_unlock_depth + 600}px`, // Pushed down to avoid overlap with title
             left: '50%',
             transform: 'translateX(-50%)',
             border: `1px solid ${isVerified ? '#00ffaa' : '#00d4ff'}`, 
             padding: '25px', 
             width: '90%', 
             maxWidth: '600px', 
-            backgroundColor: isVerified ? 'rgba(0, 255, 170, 0.05)' : 'rgba(0, 212, 255, 0.05)', 
+            backgroundColor: 'rgba(0, 12, 24, 0.9)', 
             boxShadow: `0 0 20px ${isVerified ? 'rgba(0, 255, 170, 0.2)' : 'rgba(0, 212, 255, 0.1)'}`,
-            opacity: currentDepth > item.required_unlock_depth - 800 ? 1 : 0, // Fades in as you approach
-            transition: 'opacity 0.5s ease'
+            opacity: currentDepth > item.required_unlock_depth - 400 ? 1 : 0, 
+            transition: 'opacity 0.5s ease',
+            zIndex: 20
           }}>
             <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: isVerified ? '#00ffaa' : '#fff' }}>
               {isVerified ? `[CLEARED] ${item.item_name}` : item.item_name}
             </h3>
+            
+            {item.image_url && (
+              <img 
+                src={item.image_url} 
+                alt={item.item_name} 
+                style={{ width: '100%', height: '200px', objectFit: 'contain', marginBottom: '15px' }} 
+              />
+            )}
+
             <p style={{ color: '#bde0fe', marginBottom: '20px', lineHeight: '1.5' }}>{item.impact_fact}</p>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -147,7 +153,7 @@ export default function DivePage() {
                   onClick={() => handleVerify(item.id)}
                   style={{ 
                     padding: '10px 20px', backgroundColor: '#00d4ff', color: '#000814', 
-                    border: 'none', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px'
+                    border: 'none', fontWeight: 'bold', cursor: 'pointer'
                   }}
                 >
                   SCAN & VERIFY
