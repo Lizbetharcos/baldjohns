@@ -3,19 +3,25 @@ import { neon } from '@neondatabase/serverless';
 
 export async function GET() {
   try {
-    // 1. Initialize the connection using your Environment Variable
     const sql = neon(process.env.DATABASE_URL!);
 
-    // 2. Fetch the trash items from your Neon table
-    // Replace 'trash_catalog' with your actual table name from schema.sql
-    const data = await sql`SELECT * FROM trash_catalog ORDER BY id ASC`;
+    // Use a LEFT JOIN to pull in animal data for each trash item
+    const data = await sql`
+      SELECT 
+        t.*, 
+        m.common_name as animal_name, 
+        m.scientific_name, 
+        m.image_url as animal_image_url
+      FROM trash_catalog t
+      LEFT JOIN marine_life m ON t.id = m.trash_id
+      ORDER BY t.required_unlock_depth ASC
+    `;
 
-    // 3. Return the data to your teammates
     return NextResponse.json(data);
   } catch (error) {
     console.error('Database Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch trench data', details: error.message },
+      { error: 'Failed to fetch trench data', details: (error as Error).message },
       { status: 500 }
     );
   }
