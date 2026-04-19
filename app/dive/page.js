@@ -6,6 +6,7 @@ import Link from 'next/link';
 export default function DivePage() {
   // --- 1. GAME STATE ---
   const [trashItems, setTrashItems] = useState([]);
+  const [marineLife, setMarineLife] = useState([]);
   const [verifiedIds, setVerifiedIds] = useState([]); 
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,14 @@ export default function DivePage() {
         const data = await res.json();
         const sortedData = data.sort((a, b) => a.required_unlock_depth - b.required_unlock_depth);
         setTrashItems(sortedData);
+        setLoading(false);
+
+        const marineRes = await fetch('/api/marine-life');
+        const marineData = await marineRes.json();
+        if (Array.isArray(marineData)) {
+          setMarineLife(marineData);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Sonar Failure:", error);
@@ -86,6 +95,14 @@ export default function DivePage() {
       overflowX: 'hidden',
       transition: 'height 1s cubic-bezier(0.4, 0, 0.2, 1)' 
     }}>
+
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-30px); }
+          100% { transform: translateY(0px); }
+        }
+      `}</style>
       
       {/* --- FIXED HUD --- */}
       <div style={{ 
@@ -110,11 +127,62 @@ export default function DivePage() {
         <h1 style={{ fontSize: '3.5rem', textShadow: '0 0 15px #00d4ff', color: '#fff' }}>BEGIN DESCENT</h1>
         <p style={{ color: '#bde0fe' }}>Locate and verify pollutants to dive deeper.</p>
       </motion.div>
+
+      {/* --- BACKGROUND MARINE LIFE --- */}
+      {marineLife.map((animal) => {
+        // Find the index of the trash this animal belongs to
+        const linkedTrashIndex = trashItems.findIndex(t => t.id === animal.trash_id);
+        
+        // If we can't find the trash, or it's locked behind the current scroll limit, don't show the animal
+        if (linkedTrashIndex === -1 || linkedTrashIndex > lockedIndex) return null;
+
+        // Position the animal based on the trash card's formula: (index + 1) * 1200
+        const cardDepth = (linkedTrashIndex + 1) * 1200;
+
+        return (
+          <motion.div
+            key={`marine-${animal.id}`}
+            style={{
+              position: 'absolute',
+              top: `${cardDepth - 150}px`, // Place it slightly above the card
+              left: animal.id % 2 === 0 ? '10%' : '75%', // Stagger left/right
+              zIndex: 5, // Lower than the card's 20
+              pointerEvents: 'none',
+              textAlign: 'center',
+              width: '250px',
+              animation: 'float 7s ease-in-out infinite' 
+            }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 0.75 }} // Keep them dark and distant
+            viewport={{ once: false, margin: "-100px" }}
+          >
+            <img 
+              src={animal.image_url} 
+              alt={animal.common_name} 
+              style={{ 
+                width: '100%', 
+                filter: 'grayscale(50%) brightness(50%) blur(1px)' // Makes it look underwater
+              }} 
+            />
+            <p style={{ 
+              fontSize: '0.8rem', 
+              color: '#00d4ff', 
+              marginTop: '10px', 
+              fontStyle: 'italic',
+              textShadow: '0 0 5px rgba(0,212,255,0.5)'
+            }}>
+              {animal.scientific_name}
+            </p>
+          </motion.div>
+        );
+      })}
         
       {/* --- TRASH CARDS --- */}
       {trashItems.map((item, index) => {
         const isVerified = verifiedIds.includes(item.id);
         const isCurrentTarget = nextLockedItem && nextLockedItem.id === item.id;
+        // Find the animal affected by this specific trash
+        const linkedAnimal = marineLife.find(a => a.trash_id === item.id);
 
         // PHYSICAL LOCK: Don't render cards that are beyond our current progress
         if (!isVerified && !isCurrentTarget && index > lockedIndex) return null;
@@ -158,10 +226,30 @@ export default function DivePage() {
             )}
 
             {/* DESCRIPTION SECTION (Always Visible) */}
-            <div style={{ borderTop: '1px solid rgba(0,212,255,0.1)', paddingTop: '20px', marginBottom: '20px' }}>
-              <p style={{ color: '#bde0fe', fontSize: '1.05rem', lineHeight: '1.6', textAlign: 'center' }}>
-                {item.impact_fact}
-              </p>
+            {/* DESCRIPTION SECTION (Dynamic based on verification) */}
+            <div style={{ borderTop: `1px solid ${isVerified ? 'rgba(0,255,170,0.3)' : 'rgba(0,212,255,0.1)'}`, paddingTop: '20px', marginBottom: '20px' }}>
+              
+              {!isVerified ? (
+                // State 1: Locked (Shows general trash fact)
+                <p style={{ color: '#bde0fe', fontSize: '1.05rem', lineHeight: '1.6', textAlign: 'center' }}>
+                  {item.impact_fact}
+                </p>
+              ) : (
+                // State 2: Verified (Reveals the hidden Marine Life story)
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{ backgroundColor: 'rgba(0, 255, 170, 0.1)', padding: '15px', borderLeft: '3px solid #00ffaa' }}
+                >
+                  <p style={{ color: '#00ffaa', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '5px', fontWeight: 'bold' }}>
+                    [ECOLOGICAL DATA UNLOCKED: {linkedAnimal?.common_name || 'Habitat Restored'}]
+                  </p>
+                  <p style={{ color: '#e0ffe8', fontSize: '1rem', lineHeight: '1.5' }}>
+                    {linkedAnimal ? linkedAnimal.how_affected : "Contaminant removed. Local ecosystem stabilizing."}
+                  </p>
+                </motion.div>
+              )}
+              
             </div>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
